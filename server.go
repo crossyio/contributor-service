@@ -15,7 +15,8 @@ type Context struct {
 func (c *Context) GeneratePresigned(rw web.ResponseWriter, req *web.Request) {
 	rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	rw.WriteHeader(http.StatusOK)
-	presignedURL := GetS3Presigned("contribute-crossy-io", "octoblu/meshblu/v1.0.0/iamruinous/meshblu-blah.tar.gz", 30)
+	path := req.PathParams["organization"] + "/" + req.PathParams["project"] + "/" + req.PathParams["packager"] + "/" + req.PathParams["version"] + "/" + req.PathParams["platform"] + "/" + req.PathParams["arch"] + "/" + req.PathParams["user"] + "/" + req.PathParams["file"]
+	presignedURL := GetS3Presigned("contribute-crossy-io", path, 30)
 	if err := json.NewEncoder(rw).Encode(presignedURL); err != nil {
 		panic(err)
 	}
@@ -26,7 +27,7 @@ func main() {
 					Middleware(web.LoggerMiddleware).     // Use some included middleware
 					Middleware(web.ShowErrorsMiddleware). // ...
 		// Middleware((*Context).SetHelloCount). // Your own middleware!
-		Get("/", (*Context).GeneratePresigned) // Add a route
+		Post("/api/v1/:organization/:project/:packager/:version/:platform/:arch/:user/:file", (*Context).GeneratePresigned) // Add a route
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "80"
