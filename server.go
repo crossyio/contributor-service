@@ -2,6 +2,7 @@ package main
 
 import (
 	"encoding/json"
+	"fmt"
 	"net/http"
 	"os"
 
@@ -22,11 +23,17 @@ func (c *Context) GeneratePresigned(rw web.ResponseWriter, req *web.Request) {
 	}
 }
 
+func (c *Context) Healthcheck(rw web.ResponseWriter, req *web.Request) {
+	rw.WriteHeader(http.StatusOK)
+	fmt.Fprintf(rw, "{\"online\": true}")
+}
+
 func main() {
 	router := web.New(Context{}). // Create your router
 					Middleware(web.LoggerMiddleware).     // Use some included middleware
 					Middleware(web.ShowErrorsMiddleware). // ...
 		// Middleware((*Context).SetHelloCount). // Your own middleware!
+		Get("/healthcheck", (*Context).Healthcheck).
 		Post("/api/v1/:organization/:project/:packager/:version/:platform/:arch/:user/:file", (*Context).GeneratePresigned) // Add a route
 	port := os.Getenv("PORT")
 	if port == "" {
