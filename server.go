@@ -1,18 +1,19 @@
 package main
 
 import (
-	"strings"
 	"encoding/json"
 	"fmt"
 	"net/http"
 	"os"
+	"strings"
 
 	"github.com/gocraft/web"
 )
 
 type Context struct {
-	Token string
-	UserInfo map[string]interface{}
+	Token        string
+	UserInfo     map[string]interface{}
+	CrossyInfo   map[string]interface{}
 	ResponseJSON interface{}
 }
 
@@ -32,7 +33,7 @@ func (c *Context) UserRequired(rw web.ResponseWriter, req *web.Request, next web
 	token := auth[7:]
 	client := &http.Client{}
 	authReq, err := http.NewRequest("GET", "https://meshblu.octoblu.com/v2/whoami", nil)
-	authReq.Header.Add("Authorization", "Bearer " + token)
+	authReq.Header.Add("Authorization", "Bearer "+token)
 	resp, err := client.Do(authReq)
 	if err != nil {
 		panic(err)
@@ -43,6 +44,8 @@ func (c *Context) UserRequired(rw web.ResponseWriter, req *web.Request, next web
 	}
 
 	c.Token = token
+	c.CrossyInfo = make(map[string]interface{})
+	c.CrossyInfo["username"] = "jmeskill"
 	c.UserInfo = userInfo
 	next(rw, req)
 }
@@ -50,7 +53,17 @@ func (c *Context) UserRequired(rw web.ResponseWriter, req *web.Request, next web
 func (c *Context) GeneratePresigned(rw web.ResponseWriter, req *web.Request) {
 	rw.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	rw.WriteHeader(http.StatusOK)
-	path := req.PathParams["organization"] + "/" + req.PathParams["project"] + "/" + req.PathParams["packager"] + "/" + req.PathParams["version"] + "/" + req.PathParams["platform"] + "/" + req.PathParams["arch"] + "/" + req.PathParams["user"] + "/" + req.PathParams["file"]
+	parts := []string{
+		c.CrossyInfo["username"].(string),
+		req.PathParams["organization"],
+		req.PathParams["project"],
+		req.PathParams["packager"],
+		req.PathParams["version"],
+		req.PathParams["platform"],
+		req.PathParams["arch"],
+		req.PathParams["file"],
+	}
+	path := strings.Join(parts, "/")
 	presignedURL := GetS3Presigned("contribute-crossy-io", path, 90)
 	if err := json.NewEncoder(rw).Encode(presignedURL); err != nil {
 		panic(err)
@@ -69,7 +82,7 @@ func main() {
 					Middleware((*Context).UserRequired).
 		// Middleware((*Context).SetHelloCount). // Your own middleware!
 		Get("/healthcheck", (*Context).Healthcheck).
-		Post("/api/v1/:organization/:project/:packager/:version/:platform/:arch/:user/:file", (*Context).GeneratePresigned) // Add a route
+		Post("/api/v1/:organization/:project/:packager/:version/:platform/:arch/:file", (*Context).GeneratePresigned) // Add a route
 	port := os.Getenv("PORT")
 	if port == "" {
 		port = "80"
