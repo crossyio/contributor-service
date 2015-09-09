@@ -1,4 +1,4 @@
-# go-crossyio-contributor
+# contributor-service
 Create Signed S3 URLs for contributed builds
 
 [![Gitter](https://badges.gitter.im/crossyio/chat.svg)](https://gitter.im/crossyio/chat)
@@ -7,5 +7,5 @@ Create Signed S3 URLs for contributed builds
 
 ```shell
 gpm install
-go build -o go-crossyio-contributor
+go build -o contributor-service
 ```

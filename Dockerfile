@@ -9,5 +9,5 @@ COPY Godeps /go/
 RUN gpm install
 
 COPY . /go/
-RUN go build -o go-crossyio-contributor
-ENTRYPOINT ./go-crossyio-contributor
+RUN go build -o contributor-service
+ENTRYPOINT ./contributor-service
