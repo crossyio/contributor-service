@@ -14,7 +14,6 @@ type Context struct {
 	Token        string
 	UserInfo     map[string]interface{}
 	CrossyInfo   map[string]interface{}
-	ResponseJSON interface{}
 }
 
 func (c *Context) UserRequired(rw web.ResponseWriter, req *web.Request, next web.NextMiddlewareFunc) {
@@ -45,7 +44,6 @@ func (c *Context) UserRequired(rw web.ResponseWriter, req *web.Request, next web
 
 	c.Token = token
 	c.CrossyInfo = make(map[string]interface{})
-	c.CrossyInfo["username"] = "jmeskill"
 	c.UserInfo = userInfo
 	next(rw, req)
 }
