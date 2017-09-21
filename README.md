@@ -8,4 +8,5 @@ Create Signed S3 URLs for contributed builds
 ```shell
 gpm install
 go build -o contributor-service
+./contributor-service
 ```
